@@ -22,4 +22,5 @@ Planit takes your goal, deadline, and experience level and generates a personali
 - Groq API (LLaMA 3.3 70B)
 
 ## Built by
-Gauri E.N. — built as part of an 8-day AI application challenge.
+Gauri E.N.
+Start Date: 21st June 2026
