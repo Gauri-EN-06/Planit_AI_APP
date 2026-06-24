@@ -20,54 +20,84 @@ html, body, [class*="css"] {
     min-height: 100vh;
 }
 
-/* ── Stars background ── */
-.stars-bg {
+/* ── Stars — pure CSS, no JS needed ── */
+.stApp::before {
+    content: '';
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     pointer-events: none;
     z-index: 0;
-    overflow: hidden;
+    background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 40% 30%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 80% 55%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(2px 2px at 35% 10%, rgba(196,191,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 75% 90%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 5% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 48% 70%, rgba(196,191,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 88% 10%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(2px 2px at 20% 35%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 65% 5%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 75%, rgba(196,191,255,0.4) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 30% 95%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 25%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 8% 65%, rgba(255,255,255,0.6) 0%, transparent 100%);
+    animation: twinkle-field 6s ease-in-out infinite alternate;
 }
-.star {
-    position: absolute;
-    background: white;
-    border-radius: 50%;
-    animation: twinkle var(--dur, 3s) ease-in-out infinite;
-    animation-delay: var(--delay, 0s);
-    opacity: 0;
-}
-@keyframes twinkle {
-    0%, 100% { opacity: 0; }
-    50% { opacity: var(--peak, 0.8); }
+@keyframes twinkle-field {
+    0%   { opacity: 0.6; }
+    50%  { opacity: 1;   }
+    100% { opacity: 0.7; }
 }
 
 /* ── Header ── */
 .planit-header {
     text-align: center;
-    padding: 2.5rem 1rem 1.5rem;
+    padding: 3rem 1rem 2rem;
     position: relative;
     z-index: 1;
 }
+.planit-planet {
+    font-size: 3.5rem;
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 18px rgba(108,99,255,0.6));
+    animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0);    }
+    50%       { transform: translateY(-6px); }
+}
 .planit-logo {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 3.2rem;
+    font-size: 3.4rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #C4BFFF 0%, #6C63FF 50%, #A78BFA 100%);
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #ffffff 0%, #C4BFFF 40%, #6C63FF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     line-height: 1.1;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
 }
 .planit-tagline {
     font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    color: #8B87C0;
-    letter-spacing: 0.08em;
+    font-size: 0.85rem;
+    color: #6B6899;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     font-weight: 500;
+}
+.planit-tagline span {
+    color: #9B97D4;
 }
 
 /* ── Section labels ── */
@@ -248,70 +278,75 @@ div[data-testid="stAlert"] {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(108, 99, 255, 0.3); border-radius: 3px; }
+
+/* ── Disable browser autocomplete dropdown ── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px #12112a inset !important;
+    -webkit-text-fill-color: #F0EEFF !important;
+}
 </style>
 
-<!-- Starfield -->
-<div class="stars-bg" id="stars"></div>
-<script>
-(function() {
-    const container = document.getElementById('stars');
-    if (!container) return;
-    for (let i = 0; i < 80; i++) {
-        const s = document.createElement('div');
-        s.className = 'star';
-        const size = Math.random() * 2 + 0.5;
-        s.style.cssText = [
-            `width:${size}px`, `height:${size}px`,
-            `left:${Math.random()*100}%`, `top:${Math.random()*100}%`,
-            `--dur:${2 + Math.random()*4}s`,
-            `--delay:${Math.random()*5}s`,
-            `--peak:${0.4 + Math.random()*0.6}`
-        ].join(';');
-        container.appendChild(s);
-    }
-})();
-</script>
 """, unsafe_allow_html=True)
 
 # ── Header ───────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="planit-header">
-    <div class="planit-logo">🪐 Planit</div>
-    <div class="planit-tagline">Turn your goals into a step-by-step plan</div>
+    <span class="planit-planet">🪐</span>
+    <div class="planit-logo">Planit</div>
+    <div class="planit-tagline">Turn your goals into a <span>step-by-step plan</span></div>
 </div>
 """, unsafe_allow_html=True)
 
 st.divider()
 
+# ── Clear flag: reset values BEFORE widgets render ────────────────────────────
+if st.session_state.get("_do_clear"):
+    st.session_state["goal"] = ""
+    st.session_state["deadline"] = ""
+    st.session_state["extra_details"] = ""
+    st.session_state["level"] = "Beginner"
+    st.session_state["_do_clear"] = False
+
 # ── Input section ─────────────────────────────────────────────────────────────
 col1, col2 = st.columns(2)
 with col1:
-    goal = st.text_input("What is your goal? 💫", placeholder="e.g. Learn Python, Build a portfolio")
+    goal = st.text_input("What is your goal? 💫", placeholder="e.g. Learn Python, Build a portfolio", key="goal", autocomplete="off")
 with col2:
-    deadline = st.text_input("How much time do you have? ⏳", placeholder="e.g. 2 weeks, 1 month")
+    deadline = st.text_input("How much time do you have? ⏳", placeholder="e.g. 2 weeks, 1 month", key="deadline", autocomplete="off")
 
-level = st.radio("Experience level 🚀", ["Beginner", "Intermediate", "Expert"], horizontal=True)
+level = st.radio("Experience level 🚀", ["Beginner", "Intermediate", "Expert"], horizontal=True, key="level")
 
 extra_details = st.text_area(
     "Any additional details? (Optional) ✍️",
     placeholder="e.g. I can study 1 hour a day, I have a gym membership, I prefer evenings",
-    height=90
+    height=90,
+    key="extra_details"
 )
 
 st.divider()
 
 # ── Buttons ───────────────────────────────────────────────────────────────────
-btn_left, btn_center, btn_right = st.columns([1, 2, 1])
+plan_generated = st.session_state.get("plan_generated", False)
 
-with btn_center:
-    generate = st.button("✨ Generate My Plan", use_container_width=True)
-
-with btn_right:
-    st.markdown('<div class="clear-btn">', unsafe_allow_html=True)
-    clear = st.button("✕ Clear", use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+if plan_generated:
+    btn_left, btn_center, btn_right = st.columns([1, 3, 1])
+    with btn_center:
+        generate = st.button("✨ Generate My Plan", use_container_width=True)
+    with btn_right:
+        st.markdown('<div class="clear-btn">', unsafe_allow_html=True)
+        clear = st.button("✕ Clear", use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+else:
+    btn_left, btn_center, btn_right = st.columns([1, 2, 1])
+    with btn_center:
+        generate = st.button("✨ Generate My Plan", use_container_width=True)
+    clear = False
 
 if clear:
+    st.session_state["_do_clear"] = True
+    st.session_state["plan_generated"] = False
     st.rerun()
 
 # ── Plan generation ───────────────────────────────────────────────────────────
@@ -336,6 +371,7 @@ if generate:
 
         from planner import generate_plan
         plan = generate_plan(goal, deadline, level, extra_details)
+        st.session_state["plan_generated"] = True
 
         progress_bar.progress(100)
         time.sleep(0.3)
@@ -346,14 +382,18 @@ if generate:
         # Matches planner.py output: "Day 1: Title", bullet tasks, plain-text outro
         lines = plan.strip().split("\n")
         intro_lines = []
-        days = {}        # { "Day 1: Title": "content" }
+        days = []        # list of (title, content, is_bonus)
         outro_lines = []
         current_day = None
         current_day_content = []
         found_days = False
+        in_bonus = False
 
         for line in lines:
             stripped = line.strip()
+
+            # Detect bonus section marker
+            is_bonus_marker = "bonus days" in stripped.lower() and "---" in stripped
 
             # Detect a day header — "Day 1:", "Day 2:", etc.
             is_day_header = (
@@ -362,48 +402,69 @@ if generate:
                 and stripped[4:].split(":")[0].strip().isdigit()
             )
 
-            if is_day_header:
-                # Save previous day if any
+            if is_bonus_marker:
+                # Save current day if any, then flag bonus mode
                 if current_day:
-                    days[current_day] = "\n".join(current_day_content).strip()
+                    days.append((current_day, "\n".join(current_day_content).strip(), False))
+                    current_day = None
+                    current_day_content = []
+                in_bonus = True
+
+            elif is_day_header:
+                if current_day:
+                    days.append((current_day, "\n".join(current_day_content).strip(), in_bonus))
                 current_day = stripped
                 current_day_content = []
                 found_days = True
 
             elif found_days and current_day:
-                # We're inside a day — collect its content
                 current_day_content.append(line)
 
             elif found_days and not current_day:
-                # Past the last day — this is the outro
                 if stripped:
                     outro_lines.append(stripped)
 
             else:
-                # Before any day — this is the intro
                 if stripped:
                     intro_lines.append(stripped)
 
         # Save the last day
         if current_day:
-            days[current_day] = "\n".join(current_day_content).strip()
+            days.append((current_day, "\n".join(current_day_content).strip(), in_bonus))
 
         intro = " ".join(intro_lines)
         outro = " ".join(outro_lines)
 
-        # Render output
-        st.markdown('<div class="plan-output">', unsafe_allow_html=True)
-
+        # Render output — intro and outro in HTML, days as native st.expander
         if intro:
             st.markdown(f'<div class="plan-intro">{intro}</div>', unsafe_allow_html=True)
 
-        for i, (day_title, day_content) in enumerate(days.items()):
-            if i > 0:
+        bonus_banner_shown = False
+        for i, (day_title, day_content, is_bonus) in enumerate(days):
+            if is_bonus and not bonus_banner_shown:
+                st.markdown("""
+                    <div style="
+                        margin: 1.2rem 0 0.8rem;
+                        padding: 0.75rem 1rem;
+                        background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(167,139,250,0.1));
+                        border: 1px solid rgba(108,99,255,0.35);
+                        border-radius: 10px;
+                        text-align: center;
+                    ">
+                        <span style="font-family:'Space Grotesk',sans-serif; font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#6C63FF;">
+                            ✦ Bonus Days
+                        </span>
+                        <p style="margin:0.3rem 0 0; color:#8B87C0; font-size:0.8rem;">
+                            Optional — but highly recommended if you want to go further.
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+                bonus_banner_shown = True
+            elif i > 0:
                 st.markdown('<hr class="day-divider">', unsafe_allow_html=True)
-            with st.expander(f"📅 {day_title}", expanded=True):
+
+            with st.expander(f"{'⭐' if is_bonus else '📅'} {day_title}", expanded=True):
                 st.markdown(day_content)
 
         if outro:
             st.markdown(f'<div class="plan-outro">{outro}</div>', unsafe_allow_html=True)
-
-        st.markdown('</div>', unsafe_allow_html=True)
