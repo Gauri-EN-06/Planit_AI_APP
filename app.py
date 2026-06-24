@@ -6,7 +6,7 @@ st.subheader("Turn your goals into a step-by-step plan ✨")
 
 st.divider()
 
-goal = st.text_input("What is your goal? 💫" , placeholder="e.g. Learn Python, Run 5km, Build a portfolio")
+goal = st.text_input("What is your goal? 💫" , placeholder="e.g. Learn Python, Learn basic yoga, Build a portfolio")
 
 deadline = st.text_input("How much time do you have?", placeholder="e.g. 2 weeks, 10 days, 1 month")
 
