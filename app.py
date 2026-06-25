@@ -20,7 +20,7 @@ html, body, [class*="css"] {
     min-height: 100vh;
 }
 
-/* ── Stars — pure CSS, no JS needed ── */
+/* ── Stars ──────────────────────────── */
 .stApp::before {
     content: '';
     position: fixed;
@@ -330,40 +330,49 @@ st.divider()
 # ── Buttons ───────────────────────────────────────────────────────────────────
 plan_generated = st.session_state.get("plan_generated", False)
 
-# Clear as fixed top-right icon — never affects Generate position
-if plan_generated:
-    st.markdown("""
-        <a href="?clear=1" style="
-            position: fixed;
-            top: 1rem;
-            right: 1.2rem;
-            z-index: 9999;
-            background: rgba(108,99,255,0.12);
-            border: 1px solid rgba(108,99,255,0.3);
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #8B87C0;
-            font-size: 0.9rem;
-            text-decoration: none;
-            transition: all 0.2s ease;
-        " onmouseover="this.style.background='rgba(108,99,255,0.25)';this.style.color='#F0EEFF'"
-           onmouseout="this.style.background='rgba(108,99,255,0.12)';this.style.color='#8B87C0'"
-           title="Clear">✕</a>
-    """, unsafe_allow_html=True)
-
 # Generate always centered, never moves
 btn_left, btn_center, btn_right = st.columns([1, 2, 1])
 with btn_center:
     generate = st.button("✨ Generate My Plan", use_container_width=True)
-clear = False
 
-# Handle clear via query param
-if st.query_params.get("clear") == "1":
-    st.query_params.clear()
+# Clear as fixed using CSS to position the Streamlit button (not top right yet but works)
+if plan_generated:
+    st.markdown("""
+        <style>
+        div[data-testid="stButton"]:has(button[kind="secondary"]#clear_btn),
+        div[data-testid="stButton"]:has(button[key="clear_btn"]) {
+            position: fixed !important;
+            top: 0.75rem !important;
+            right: 1rem !important;
+            z-index: 9999 !important;
+        }
+        button[data-testid="baseButton-secondary"][kind="secondary"] {
+            background: transparent !important;
+            border: 1px solid rgba(139,135,192,0.4) !important;
+            border-radius: 50% !important;
+            width: 34px !important;
+            height: 34px !important;
+            padding: 0 !important;
+            color: #8B87C0 !important;
+            font-size: 0.85rem !important;
+            min-height: unset !important;
+            box-shadow: none !important;
+            line-height: 1 !important;
+        }
+        button[data-testid="baseButton-secondary"]:hover {
+            background: rgba(108,99,255,0.15) !important;
+            border-color: #6C63FF !important;
+            color: #F0EEFF !important;
+            transform: none !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    clear = st.button("Clear ✕", key="clear_btn", type="secondary")
+else:
+    clear = False
+
+# Handle clear button
+if clear:
     st.session_state["_do_clear"] = True
     st.session_state["plan_generated"] = False
     st.session_state["plan_output"] = None
