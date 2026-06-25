@@ -54,7 +54,7 @@ html, body, [class*="css"] {
 @keyframes twinkle-field {
     0%   { opacity: 0.65; }
     50%  { opacity: 1;   }
-    100% { opacity: 0.8; }
+    100% { opacity: 0.75; }
 }
 
 /* ── Header ── */
