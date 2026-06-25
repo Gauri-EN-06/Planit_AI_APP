@@ -347,6 +347,7 @@ else:
 if clear:
     st.session_state["_do_clear"] = True
     st.session_state["plan_generated"] = False
+    st.session_state["plan_output"] = None
     st.rerun()
 
 # ── Plan generation ───────────────────────────────────────────────────────────
@@ -372,99 +373,90 @@ if generate:
         from planner import generate_plan
         plan = generate_plan(goal, deadline, level, extra_details)
         st.session_state["plan_generated"] = True
+        st.session_state["plan_output"] = plan
 
         progress_bar.progress(100)
         time.sleep(0.3)
         progress_bar.empty()
         progress_text.empty()
+        st.rerun()
 
-        # Parse and display
-        # Matches planner.py output: "Day 1: Title", bullet tasks, plain-text outro
-        lines = plan.strip().split("\n")
-        intro_lines = []
-        days = []        # list of (title, content, is_bonus)
-        outro_lines = []
-        current_day = None
-        current_day_content = []
-        found_days = False
-        in_bonus = False
+# ── Display stored plan ───────────────────────────────────────────────────────
+if st.session_state.get("plan_output"):
+    plan = st.session_state["plan_output"]
+    lines = plan.strip().split("\n")
+    intro_lines = []
+    days = []
+    outro_lines = []
+    current_day = None
+    current_day_content = []
+    found_days = False
+    in_bonus = False
 
-        for line in lines:
-            stripped = line.strip()
-
-            # Detect bonus section marker
-            is_bonus_marker = "bonus days" in stripped.lower() and "---" in stripped
-
-            # Detect a day header — "Day 1:", "Day 2:", etc.
-            is_day_header = (
-                stripped.lower().startswith("day ")
-                and len(stripped) > 4
-                and stripped[4:].split(":")[0].strip().isdigit()
-            )
-
-            if is_bonus_marker:
-                # Save current day if any, then flag bonus mode
-                if current_day:
-                    days.append((current_day, "\n".join(current_day_content).strip(), False))
-                    current_day = None
-                    current_day_content = []
-                in_bonus = True
-
-            elif is_day_header:
-                if current_day:
-                    days.append((current_day, "\n".join(current_day_content).strip(), in_bonus))
-                current_day = stripped
+    for line in lines:
+        stripped = line.strip()
+        is_bonus_marker = "bonus days" in stripped.lower() and "---" in stripped
+        is_day_header = (
+            stripped.lower().startswith("day ")
+            and len(stripped) > 4
+            and stripped[4:].split(":")[0].strip().isdigit()
+        )
+        if is_bonus_marker:
+            if current_day:
+                days.append((current_day, "\n".join(current_day_content).strip(), False))
+                current_day = None
                 current_day_content = []
-                found_days = True
+            in_bonus = True
+        elif is_day_header:
+            if current_day:
+                days.append((current_day, "\n".join(current_day_content).strip(), in_bonus))
+            current_day = stripped
+            current_day_content = []
+            found_days = True
+        elif found_days and current_day:
+            current_day_content.append(line)
+        elif found_days and not current_day:
+            if stripped:
+                outro_lines.append(stripped)
+        else:
+            if stripped:
+                intro_lines.append(stripped)
 
-            elif found_days and current_day:
-                current_day_content.append(line)
+    if current_day:
+        days.append((current_day, "\n".join(current_day_content).strip(), in_bonus))
 
-            elif found_days and not current_day:
-                if stripped:
-                    outro_lines.append(stripped)
+    intro = " ".join(intro_lines)
+    outro = " ".join(outro_lines)
 
-            else:
-                if stripped:
-                    intro_lines.append(stripped)
+    if intro:
+        st.markdown(f'<div class="plan-intro">{intro}</div>', unsafe_allow_html=True)
 
-        # Save the last day
-        if current_day:
-            days.append((current_day, "\n".join(current_day_content).strip(), in_bonus))
+    bonus_banner_shown = False
+    for i, (day_title, day_content, is_bonus) in enumerate(days):
+        if is_bonus and not bonus_banner_shown:
+            st.markdown("""
+                <div style="
+                    margin: 1.2rem 0 0.8rem;
+                    padding: 0.75rem 1rem;
+                    background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(167,139,250,0.1));
+                    border: 1px solid rgba(108,99,255,0.35);
+                    border-radius: 10px;
+                    text-align: center;
+                ">
+                    <span style="font-family:'Space Grotesk',sans-serif; font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#6C63FF;">
+                        ✦ Bonus Days
+                    </span>
+                    <p style="margin:0.3rem 0 0; color:#8B87C0; font-size:0.8rem;">
+                        Optional — but highly recommended if you want to go further.
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
+            bonus_banner_shown = True
+        elif i > 0:
+            st.markdown('<hr class="day-divider">', unsafe_allow_html=True)
 
-        intro = " ".join(intro_lines)
-        outro = " ".join(outro_lines)
+        with st.expander(f"{"⭐" if is_bonus else "📅"} {day_title}", expanded=True):
+            st.markdown(day_content)
 
-        # Render output — intro and outro in HTML, days as native st.expander
-        if intro:
-            st.markdown(f'<div class="plan-intro">{intro}</div>', unsafe_allow_html=True)
-
-        bonus_banner_shown = False
-        for i, (day_title, day_content, is_bonus) in enumerate(days):
-            if is_bonus and not bonus_banner_shown:
-                st.markdown("""
-                    <div style="
-                        margin: 1.2rem 0 0.8rem;
-                        padding: 0.75rem 1rem;
-                        background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(167,139,250,0.1));
-                        border: 1px solid rgba(108,99,255,0.35);
-                        border-radius: 10px;
-                        text-align: center;
-                    ">
-                        <span style="font-family:'Space Grotesk',sans-serif; font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#6C63FF;">
-                            ✦ Bonus Days
-                        </span>
-                        <p style="margin:0.3rem 0 0; color:#8B87C0; font-size:0.8rem;">
-                            Optional — but highly recommended if you want to go further.
-                        </p>
-                    </div>
-                """, unsafe_allow_html=True)
-                bonus_banner_shown = True
-            elif i > 0:
-                st.markdown('<hr class="day-divider">', unsafe_allow_html=True)
-
-            with st.expander(f"{'⭐' if is_bonus else '📅'} {day_title}", expanded=True):
-                st.markdown(day_content)
-
-        if outro:
-            st.markdown(f'<div class="plan-outro">{outro}</div>', unsafe_allow_html=True)
+    if outro:
+        st.markdown(f'<div class="plan-outro">{outro}</div>', unsafe_allow_html=True)
