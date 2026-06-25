@@ -219,13 +219,14 @@ def generate_plan(goal, deadline, level, extra_details=""):
     7. NEVER use the 💪 emoji — all other emojis are allowed
     8. NEVER generate deep or specific URLs — homepage-level only
     9. NEVER write section labels like [Intro], [Outro], or [Day by Day Plan]
-    10. ALWAYS include a resource for every single day
-    11. ALWAYS end with a wrap-up or review day
-    12. ALWAYS write an intro that references the user's specific goal, level, and deadline
-    13. ALWAYS write an outro that mentions what the user will concretely achieve
-    14. ALWAYS follow task order: introduce → explain → practice
-    15. ALWAYS state assumptions casually if the goal is broad or unclear
-    16. For small goals with long deadlines, ALWAYS add the optional bonus note
+    10. NEVER add rest days to non-fitness goals (e.g. learning, creative work)
+    11. ALWAYS include a resource for every single day
+    12. ALWAYS end with a wrap-up or review day
+    13. ALWAYS write an intro that references the user's specific goal, level, and deadline
+    14. ALWAYS write an outro that mentions what the user will concretely achieve
+    15. ALWAYS follow task order: introduce → explain → practice
+    16. ALWAYS state assumptions casually if the goal is broad or unclear
+    17. For small goals with long deadlines, ALWAYS add the optional bonus note
     """
 
     response = client.chat.completions.create(
