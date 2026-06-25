@@ -20,7 +20,7 @@ html, body, [class*="css"] {
     min-height: 100vh;
 }
 
-/* ── Stars ──────────────────────────── */
+/* ── Stars ── */
 .stApp::before {
     content: '';
     position: fixed;
@@ -226,7 +226,7 @@ div[data-testid="stProgress"] > div > div {
 .plan-outro {
     font-style: italic;
     color: #8B87C0;
-    font-size: 0.9rem;
+    font-size: 1rem;
     margin-top: 0.5rem;
     padding-top: 1rem;
     border-top: 1px solid rgba(108, 99, 255, 0.15);
@@ -242,7 +242,7 @@ div[data-testid="stExpander"] {
     background: rgba(108, 99, 255, 0.06) !important;
     border: 1px solid rgba(108, 99, 255, 0.18) !important;
     border-radius: 10px !important;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
 }
 div[data-testid="stExpander"] summary {
     font-family: 'Space Grotesk', sans-serif !important;
@@ -330,12 +330,16 @@ st.divider()
 # ── Buttons ───────────────────────────────────────────────────────────────────
 plan_generated = st.session_state.get("plan_generated", False)
 
+# ── Rate limiting ─────────────────────────────────────────────────────────────
+if "last_request_time" not in st.session_state:
+    st.session_state.last_request_time = 0
+
 # Generate always centered, never moves
 btn_left, btn_center, btn_right = st.columns([1, 2, 1])
 with btn_center:
     generate = st.button("✨ Generate My Plan", use_container_width=True)
 
-# Clear as fixed using CSS to position the Streamlit button (not top right yet but works)
+# Clear as fixed top-right icon using CSS to position the Streamlit button
 if plan_generated:
     st.markdown("""
         <style>
@@ -367,7 +371,7 @@ if plan_generated:
         }
         </style>
     """, unsafe_allow_html=True)
-    clear = st.button("Clear ✕", key="clear_btn", type="secondary")
+    clear = st.button("✕", key="clear_btn", type="secondary")
 else:
     clear = False
 
@@ -383,29 +387,35 @@ if generate:
     if not goal or not deadline:
         st.warning("Please fill in your goal and time available before launching! 🚀")
     else:
-        # Progress bar simulation
-        progress_text = st.empty()
-        progress_bar = st.progress(0)
+        time_since_last = time.time() - st.session_state.last_request_time
+        if time_since_last < 10:
+            st.warning(f"Please wait {int(10 - time_since_last)} seconds before generating again! ⏳")
+        else:
+            st.session_state.last_request_time = time.time()
 
-        stages = [
-            ("🚀 Mapping your trajectory…", 20),
-            ("🛰️Charting the course…", 45),
-            ("🌌 Aligning the stars…", 70),
-            ("💫 Finalising your mission…", 90),
-        ]
-        for msg, val in stages:
-            progress_text.markdown(f"<p style='color:#8B87C0;font-size:0.85rem;text-align:center'>{msg}</p>", unsafe_allow_html=True)
-            progress_bar.progress(val)
-            time.sleep(0.5)
+            # Progress bar simulation
+            progress_text = st.empty()
+            progress_bar = st.progress(0)
 
-        from planner import generate_plan
-        try:
-            plan = generate_plan(goal, deadline, level, extra_details)
-        except Exception as e:
-            st.error("Something went wrong connecting to the AI. Please try again in a moment!")
-            st.stop()
-        st.session_state["plan_generated"] = True
-        st.session_state["plan_output"] = plan
+            stages = [
+                ("🚀 Mapping your trajectory…", 20),
+                ("🛰️ Charting the course…", 45),
+                ("🌌 Aligning the stars…", 70),
+                ("💫 Finalising your mission…", 90),
+            ]
+            for msg, val in stages:
+                progress_text.markdown(f"<p style='color:#8B87C0;font-size:0.85rem;text-align:center'>{msg}</p>", unsafe_allow_html=True)
+                progress_bar.progress(val)
+                time.sleep(0.5)
+
+            from planner import generate_plan
+            try:
+                plan = generate_plan(goal, deadline, level, extra_details)
+            except Exception as e:
+                st.error("Something went wrong connecting to the AI. Please try again in a moment!")
+                st.stop()
+            st.session_state["plan_generated"] = True
+            st.session_state["plan_output"] = plan
 
         progress_bar.progress(100)
         time.sleep(0.3)
@@ -424,7 +434,7 @@ if st.session_state.get("plan_output"):
     current_day_content = []
     found_days = False
     in_bonus = False
-
+ 
     for line in lines:
         stripped = line.strip()
         is_bonus_marker = "bonus days" in stripped.lower() and "---" in stripped
@@ -446,14 +456,22 @@ if st.session_state.get("plan_output"):
             current_day_content = []
             found_days = True
         elif found_days and current_day:
-            current_day_content.append(line)
+            # Skip bonus note line if planner includes it inside day content
+            if not ("optional" in stripped.lower() and "highly recommended" in stripped.lower()):
+                current_day_content.append(line)
         elif found_days and not current_day:
-            if stripped:
+            # Skip bonus note and marker lines from outro
+            skip = (
+                ("optional" in stripped.lower() and "highly recommended" in stripped.lower()) or
+                "--- bonus days" in stripped.lower() or
+                stripped.lower().startswith("--- bonus")
+            )
+            if stripped and not skip:
                 outro_lines.append(stripped)
         else:
             if stripped:
                 intro_lines.append(stripped)
-
+ 
     # Save last day — but strip trailing non-bullet lines into outro
     if current_day:
         # Walk back from end of content to find where tasks end and outro begins
@@ -468,13 +486,20 @@ if st.session_state.get("plan_output"):
             outro_lines = [l.strip() for l in content_lines[cutoff:] if l.strip()] + outro_lines
             content_lines = content_lines[:cutoff]
         days.append((current_day, "\n".join(content_lines).strip(), in_bonus))
-
+ 
     intro = " ".join(intro_lines)
+    # Filter bonus note from outro regardless of where planner placed it
+    outro_lines = [
+        l for l in outro_lines
+        if not ("optional" in l.lower() and "highly recommended" in l.lower())
+        and "--- bonus days" not in l.lower()
+        and not l.lower().startswith("--- bonus")
+    ]
     outro = " ".join(outro_lines)
-
+ 
     if intro:
         st.markdown(f'<div class="plan-intro">{intro}</div>', unsafe_allow_html=True)
-
+ 
     bonus_banner_shown = False
     for i, (day_title, day_content, is_bonus) in enumerate(days):
         if is_bonus and not bonus_banner_shown:
@@ -498,9 +523,9 @@ if st.session_state.get("plan_output"):
             bonus_banner_shown = True
         elif i > 0:
             st.markdown('<hr class="day-divider">', unsafe_allow_html=True)
-
+ 
         with st.expander(f"{"⭐" if is_bonus else "📅"} {day_title}", expanded=True):
             st.markdown(day_content)
-
+ 
     if outro:
         st.markdown(f'<div class="plan-outro">{outro}</div>', unsafe_allow_html=True)
