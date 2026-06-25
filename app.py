@@ -29,9 +29,9 @@ html, body, [class*="css"] {
     pointer-events: none;
     z-index: 0;
     background-image:
-        radial-gradient(1.5px 1.5px at 10% 15%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,1) 0%, transparent 100%),
         radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.9) 0%, transparent 100%),
-        radial-gradient(2px 2px at 40% 30%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 40% 30%, rgba(255,255,255,1) 0%, transparent 100%),
         radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.85) 0%, transparent 100%),
         radial-gradient(1.5px 1.5px at 70% 20%, rgba(255,255,255,1) 0%, transparent 100%),
         radial-gradient(2px 2px at 80% 55%, rgba(255,255,255,0.95) 0%, transparent 100%),
@@ -52,9 +52,9 @@ html, body, [class*="css"] {
     animation: twinkle-field 6s ease-in-out infinite alternate;
 }
 @keyframes twinkle-field {
-    0%   { opacity: 0.7; }
+    0%   { opacity: 0.65; }
     50%  { opacity: 1;   }
-    100% { opacity: 0.85; }
+    100% { opacity: 0.8; }
 }
 
 /* ── Header ── */
