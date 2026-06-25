@@ -388,10 +388,10 @@ if generate:
         progress_bar = st.progress(0)
 
         stages = [
-            ("Mapping your trajectory…", 20),
-            ("Charting the course…", 45),
-            ("Aligning the stars…", 70),
-            ("Finalising your mission…", 90),
+            ("🚀 Mapping your trajectory…", 20),
+            ("🛰️Charting the course…", 45),
+            ("🌌 Aligning the stars…", 70),
+            ("💫 Finalising your mission…", 90),
         ]
         for msg, val in stages:
             progress_text.markdown(f"<p style='color:#8B87C0;font-size:0.85rem;text-align:center'>{msg}</p>", unsafe_allow_html=True)
@@ -399,7 +399,11 @@ if generate:
             time.sleep(0.5)
 
         from planner import generate_plan
-        plan = generate_plan(goal, deadline, level, extra_details)
+        try:
+            plan = generate_plan(goal, deadline, level, extra_details)
+        except Exception as e:
+            st.error("Something went wrong connecting to the AI. Please try again in a moment!")
+            st.stop()
         st.session_state["plan_generated"] = True
         st.session_state["plan_output"] = plan
 
