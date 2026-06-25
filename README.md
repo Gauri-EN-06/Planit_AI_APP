@@ -23,4 +23,5 @@ Planit takes your goal, deadline, and experience level and generates a personali
 
 ## ⭐ Built by
 Gauri E.N.
+
 Start Date: 21st June 2026
