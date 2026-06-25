@@ -29,32 +29,32 @@ html, body, [class*="css"] {
     pointer-events: none;
     z-index: 0;
     background-image:
-        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
-        radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 40% 30%, rgba(255,255,255,0.8) 0%, transparent 100%),
-        radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
-        radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 80% 55%, rgba(255,255,255,0.7) 0%, transparent 100%),
-        radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.6) 0%, transparent 100%),
-        radial-gradient(2px 2px at 35% 10%, rgba(196,191,255,0.6) 0%, transparent 100%),
-        radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
-        radial-gradient(1px 1px at 75% 90%, rgba(255,255,255,0.5) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 5% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
-        radial-gradient(1px 1px at 48% 70%, rgba(196,191,255,0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 88% 10%, rgba(255,255,255,0.7) 0%, transparent 100%),
-        radial-gradient(2px 2px at 20% 35%, rgba(255,255,255,0.3) 0%, transparent 100%),
-        radial-gradient(1px 1px at 65% 5%, rgba(255,255,255,0.6) 0%, transparent 100%),
-        radial-gradient(1px 1px at 92% 75%, rgba(196,191,255,0.4) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 30% 95%, rgba(255,255,255,0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 50% 25%, rgba(255,255,255,0.4) 0%, transparent 100%),
-        radial-gradient(1px 1px at 8% 65%, rgba(255,255,255,0.6) 0%, transparent 100%);
+        radial-gradient(1.5px 1.5px at 10% 15%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(2px 2px at 40% 30%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.85) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 70% 20%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(2px 2px at 80% 55%, rgba(255,255,255,0.95) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 15% 85%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(2.5px 2.5px at 35% 10%, rgba(196,191,255,1) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,0.85) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 75% 90%, rgba(255,255,255,0.95) 0%, transparent 100%),
+        radial-gradient(2px 2px at 5% 45%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(1px 1px at 48% 70%, rgba(196,191,255,0.9) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 88% 10%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(2px 2px at 20% 35%, rgba(255,255,255,0.85) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 65% 5%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 75%, rgba(196,191,255,0.9) 0%, transparent 100%),
+        radial-gradient(2px 2px at 30% 95%, rgba(255,255,255,0.95) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 25%, rgba(255,255,255,1) 0%, transparent 100%),
+        radial-gradient(1px 1px at 8% 65%, rgba(255,255,255,0.9) 0%, transparent 100%);
     animation: twinkle-field 6s ease-in-out infinite alternate;
 }
 @keyframes twinkle-field {
-    0%   { opacity: 0.6; }
+    0%   { opacity: 0.7; }
     50%  { opacity: 1;   }
-    100% { opacity: 0.7; }
+    100% { opacity: 0.85; }
 }
 
 /* ── Header ── */
@@ -330,21 +330,40 @@ st.divider()
 # ── Buttons ───────────────────────────────────────────────────────────────────
 plan_generated = st.session_state.get("plan_generated", False)
 
+# Clear as fixed top-right icon — never affects Generate position
 if plan_generated:
-    btn_left, btn_center, btn_right = st.columns([1, 3, 1])
-    with btn_center:
-        generate = st.button("✨ Generate My Plan", use_container_width=True)
-    with btn_right:
-        st.markdown('<div class="clear-btn">', unsafe_allow_html=True)
-        clear = st.button("✕ Clear", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-else:
-    btn_left, btn_center, btn_right = st.columns([1, 2, 1])
-    with btn_center:
-        generate = st.button("✨ Generate My Plan", use_container_width=True)
-    clear = False
+    st.markdown("""
+        <a href="?clear=1" style="
+            position: fixed;
+            top: 1rem;
+            right: 1.2rem;
+            z-index: 9999;
+            background: rgba(108,99,255,0.12);
+            border: 1px solid rgba(108,99,255,0.3);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8B87C0;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        " onmouseover="this.style.background='rgba(108,99,255,0.25)';this.style.color='#F0EEFF'"
+           onmouseout="this.style.background='rgba(108,99,255,0.12)';this.style.color='#8B87C0'"
+           title="Clear">✕</a>
+    """, unsafe_allow_html=True)
 
-if clear:
+# Generate always centered, never moves
+btn_left, btn_center, btn_right = st.columns([1, 2, 1])
+with btn_center:
+    generate = st.button("✨ Generate My Plan", use_container_width=True)
+clear = False
+
+# Handle clear via query param
+if st.query_params.get("clear") == "1":
+    st.query_params.clear()
     st.session_state["_do_clear"] = True
     st.session_state["plan_generated"] = False
     st.session_state["plan_output"] = None
@@ -422,8 +441,20 @@ if st.session_state.get("plan_output"):
             if stripped:
                 intro_lines.append(stripped)
 
+    # Save last day — but strip trailing non-bullet lines into outro
     if current_day:
-        days.append((current_day, "\n".join(current_day_content).strip(), in_bonus))
+        # Walk back from end of content to find where tasks end and outro begins
+        content_lines = current_day_content
+        cutoff = len(content_lines)
+        for j in range(len(content_lines) - 1, -1, -1):
+            l = content_lines[j].strip()
+            if l.startswith("-") or l.startswith("•") or l == "" or l.lower().startswith("resource"):
+                break
+            cutoff = j
+        if cutoff < len(content_lines):
+            outro_lines = [l.strip() for l in content_lines[cutoff:] if l.strip()] + outro_lines
+            content_lines = content_lines[:cutoff]
+        days.append((current_day, "\n".join(content_lines).strip(), in_bonus))
 
     intro = " ".join(intro_lines)
     outro = " ".join(outro_lines)
