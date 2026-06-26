@@ -1,13 +1,39 @@
+"""
+app.py — Planit 🪐
+==================
+Streamlit frontend for Planit, an AI-powered planning app that turns any
+goal into a personalized day-by-day action plan.
+
+Structure:
+    1. Imports & page config
+    2. Custom CSS (theme, animations, component styles)
+    3. Session state initialisation
+    4. Header
+    5. Input section
+    6. Generate / Clear buttons
+    7. Plan generation logic
+    8. Plan display (parser + renderer)
+
+Dependencies:
+    pip install streamlit groq python-dotenv
+"""
+
 import streamlit as st
 import time
 
-# ── Page config ──────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# 1. PAGE CONFIG
+# ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Planit", page_icon="🪐", layout="centered")
 
-# ── Custom CSS ────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. CUSTOM CSS
+#    All styling is injected via st.markdown() since Streamlit doesn't support
+#    external .css files. Organised into logical sections below.
+# ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ── Imports ── */
+/* ── Google Fonts ── */
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500&display=swap');
 
 /* ── Base ── */
@@ -15,12 +41,16 @@ html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
 }
 
+/* Deep space background gradient */
 .stApp {
     background: radial-gradient(ellipse at 20% 10%, #1a1040 0%, #0B0D1A 45%, #080C18 100%);
     min-height: 100vh;
 }
 
-/* ── Stars ── */
+/* ── Starfield bg
+    Uses radial-gradient dots scattered across the viewport via a
+   pseudo-element so they sit behind all content. Opacity animates
+   to create a subtle twinkling effect. ── */
 .stApp::before {
     content: '';
     position: fixed;
@@ -64,6 +94,8 @@ html, body, [class*="css"] {
     position: relative;
     z-index: 1;
 }
+
+/* Planet emoji floats up and down with a purple glow */
 .planit-planet {
     font-size: 3.5rem;
     display: block;
@@ -76,6 +108,8 @@ html, body, [class*="css"] {
     0%, 100% { transform: translateY(0);    }
     50%       { transform: translateY(-6px); }
 }
+
+/* Brand logotype with white-to-purple gradient */
 .planit-logo {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 3.4rem;
@@ -88,6 +122,7 @@ html, body, [class*="css"] {
     line-height: 1.1;
     margin-bottom: 0.6rem;
 }
+
 .planit-tagline {
     font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
@@ -97,21 +132,10 @@ html, body, [class*="css"] {
     font-weight: 500;
 }
 .planit-tagline span {
-    color: #9B97D4;
+    color: #9B97D4; /* accent on "step-by-step plan" */
 }
 
-/* ── Section labels ── */
-.section-label {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #6C63FF;
-    margin-bottom: 0.3rem;
-}
-
-/* ── Inputs ── */
+/* ── Input labels ── */
 div[data-testid="stTextInput"] label,
 div[data-testid="stTextArea"] label,
 div[data-testid="stRadio"] label {
@@ -121,6 +145,7 @@ div[data-testid="stRadio"] label {
     font-size: 0.9rem !important;
 }
 
+/* ── Text inputs & textarea ── */
 div[data-testid="stTextInput"] input,
 div[data-testid="stTextArea"] textarea {
     background: rgba(108, 99, 255, 0.08) !important;
@@ -140,7 +165,15 @@ div[data-testid="stTextArea"] textarea::placeholder {
     color: #4a4870 !important;
 }
 
-/* ── Radio ── */
+/* Suppress browser autofill yellow highlight */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px #12112a inset !important;
+    -webkit-text-fill-color: #F0EEFF !important;
+}
+
+/* ── Experience level radio buttons — styled as pill toggles ── */
 div[data-testid="stRadio"] > div {
     gap: 0.75rem !important;
 }
@@ -161,7 +194,7 @@ div[data-testid="stRadio"] > div > label:has(input:checked) {
     color: #F0EEFF !important;
 }
 
-/* ── Primary button (Generate) ── */
+/* ── Generate button — purple gradient with lift-on-hover ── */
 div[data-testid="stButton"] > button[kind="primary"],
 div[data-testid="stButton"] > button {
     background: linear-gradient(135deg, #6C63FF, #8B5CF6) !important;
@@ -181,23 +214,7 @@ div[data-testid="stButton"] > button:hover {
     box-shadow: 0 6px 28px rgba(108, 99, 255, 0.5) !important;
 }
 
-/* ── Secondary button (Clear) ── */
-.clear-btn > button {
-    background: transparent !important;
-    color: #8B87C0 !important;
-    border: 1px solid rgba(139, 135, 192, 0.3) !important;
-    border-radius: 10px !important;
-    font-family: 'Space Grotesk', sans-serif !important;
-    font-weight: 500 !important;
-    font-size: 0.85rem !important;
-}
-.clear-btn > button:hover {
-    border-color: #8B87C0 !important;
-    color: #C4BFFF !important;
-    background: rgba(139, 135, 192, 0.08) !important;
-}
-
-/* ── Progress bar ── */
+/* ── Progress bar — purple gradient fill ── */
 div[data-testid="stProgress"] > div > div > div {
     background: linear-gradient(90deg, #6C63FF, #A78BFA) !important;
     border-radius: 4px !important;
@@ -207,15 +224,9 @@ div[data-testid="stProgress"] > div > div {
     border-radius: 4px !important;
 }
 
-/* ── Output plan area ── */
-.plan-output {
-    background: rgba(240, 238, 255, 0.04);
-    border: 1px solid rgba(108, 99, 255, 0.2);
-    border-radius: 14px;
-    padding: 1.5rem 1.75rem;
-    margin-top: 1rem;
-}
+/* ── Plan output ── */
 .plan-intro {
+    /* Bold intro sentence displayed above the day expanders */
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.3rem;
     font-weight: 700;
@@ -224,6 +235,7 @@ div[data-testid="stProgress"] > div > div {
     margin-bottom: 1.2rem;
 }
 .plan-outro {
+    /* Italic closing message displayed below all day expanders */
     font-style: italic;
     color: #8B87C0;
     font-size: 1rem;
@@ -232,12 +244,13 @@ div[data-testid="stProgress"] > div > div {
     border-top: 1px solid rgba(108, 99, 255, 0.15);
 }
 .day-divider {
+    /* Thin separator line between day expanders */
     border: none;
     border-top: 1px solid rgba(108, 99, 255, 0.15);
     margin: 0.5rem 0;
 }
 
-/* ── Expanders ── */
+/* ── Day expanders ── */
 div[data-testid="stExpander"] {
     background: rgba(108, 99, 255, 0.06) !important;
     border: 1px solid rgba(108, 99, 255, 0.18) !important;
@@ -260,13 +273,13 @@ div[data-testid="stExpander"] div[data-testid="stExpanderDetails"] {
     padding-top: 0.25rem !important;
 }
 
-/* ── Divider ── */
+/* ── Divider lines ── */
 hr[data-testid="stDivider"] {
     border-color: rgba(108, 99, 255, 0.2) !important;
     margin: 1.5rem 0 !important;
 }
 
-/* ── Warning ── */
+/* ── Warning / error alerts ── */
 div[data-testid="stAlert"] {
     background: rgba(108, 99, 255, 0.1) !important;
     border: 1px solid rgba(108, 99, 255, 0.3) !important;
@@ -279,18 +292,42 @@ div[data-testid="stAlert"] {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(108, 99, 255, 0.3); border-radius: 3px; }
 
-/* ── Disable browser autocomplete dropdown ── */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0px 1000px #12112a inset !important;
-    -webkit-text-fill-color: #F0EEFF !important;
-}
 </style>
-
 """, unsafe_allow_html=True)
 
-# ── Header ───────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. SESSION STATE INITIALISATION
+#    Streamlit reruns the entire script on every interaction, so persistent
+#    values are stored in st.session_state between reruns.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Rate limiting: tracks timestamp of the last API call
+if "last_request_time" not in st.session_state:
+    st.session_state.last_request_time = 0
+
+# Stores the raw plan text returned by the AI
+if "plan_output" not in st.session_state:
+    st.session_state.plan_output = None
+
+# Tracks whether a plan has been generated in this session
+if "plan_generated" not in st.session_state:
+    st.session_state.plan_generated = False
+
+# Clear flag: set to True by the Clear button, consumed before widgets render
+# This pattern is needed because Streamlit doesn't allow modifying a widget's
+# session state key after the widget has already been rendered on the page.
+if st.session_state.get("_do_clear"):
+    st.session_state["goal"]         = ""
+    st.session_state["deadline"]     = ""
+    st.session_state["extra_details"] = ""
+    st.session_state["level"]        = "Beginner"
+    st.session_state["_do_clear"]    = False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. HEADER
+# ─────────────────────────────────────────────────────────────────────────────
+
 st.markdown("""
 <div class="planit-header">
     <span class="planit-planet">🪐</span>
@@ -301,15 +338,13 @@ st.markdown("""
 
 st.divider()
 
-# ── Clear flag: reset values BEFORE widgets render ────────────────────────────
-if st.session_state.get("_do_clear"):
-    st.session_state["goal"] = ""
-    st.session_state["deadline"] = ""
-    st.session_state["extra_details"] = ""
-    st.session_state["level"] = "Beginner"
-    st.session_state["_do_clear"] = False
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. INPUT SECTION
+#    Goal and deadline side by side; level as pill radio; extra details as
+#    a resizable textarea. All inputs use explicit keys so session state
+#    can reset them cleanly via the Clear button.
+# ─────────────────────────────────────────────────────────────────────────────
 
-# ── Input section ─────────────────────────────────────────────────────────────
 col1, col2 = st.columns(2)
 with col1:
     goal = st.text_input("What is your goal? 💫", placeholder="e.g. Learn Python, Build a portfolio", key="goal", autocomplete="off")
@@ -327,66 +362,75 @@ extra_details = st.text_area(
 
 st.divider()
 
-# ── Buttons ───────────────────────────────────────────────────────────────────
-plan_generated = st.session_state.get("plan_generated", False)
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. BUTTONS
+#    Generate is always centered and never moves.
+#    Clear is a fixed HTML button pinned to the top-right corner — it only
+#    appears after a plan has been generated. Using a pure HTML button (not
+#    a Streamlit widget) avoids layout interference with Generate.
+#    Clear works by appending ?clear=1 to the URL, which Streamlit reads via
+#    st.query_params on the next rerun.
+# ─────────────────────────────────────────────────────────────────────────────
 
-# ── Rate limiting ─────────────────────────────────────────────────────────────
-if "last_request_time" not in st.session_state:
-    st.session_state.last_request_time = 0
-
-# Generate always centered, never moves
-btn_left, btn_center, btn_right = st.columns([1, 2, 1])
+# Generate button — always centered in a 1:2:1 column layout
+_, btn_center, _ = st.columns([1, 2, 1])
 with btn_center:
     generate = st.button("✨ Generate My Plan", use_container_width=True)
 
-# Clear as fixed top-right icon using CSS to position the Streamlit button
-if plan_generated:
+# Clear button — fixed top-right, only visible after a plan is generated
+if st.session_state.plan_generated:
     st.markdown("""
         <style>
-        div[data-testid="stButton"]:has(button[kind="secondary"]#clear_btn),
-        div[data-testid="stButton"]:has(button[key="clear_btn"]) {
-            position: fixed !important;
-            top: 0.75rem !important;
-            right: 1rem !important;
-            z-index: 9999 !important;
+        #planit-clear-btn {
+            position: fixed;
+            top: 0.85rem;
+            right: 1.1rem;
+            z-index: 99999;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid rgba(139,135,192,0.4);
+            background: transparent;
+            color: #8B87C0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
         }
-        button[data-testid="baseButton-secondary"][kind="secondary"] {
-            background: transparent !important;
-            border: 1px solid rgba(139,135,192,0.4) !important;
-            border-radius: 50% !important;
-            width: 34px !important;
-            height: 34px !important;
-            padding: 0 !important;
-            color: #8B87C0 !important;
-            font-size: 0.85rem !important;
-            min-height: unset !important;
-            box-shadow: none !important;
-            line-height: 1 !important;
-        }
-        button[data-testid="baseButton-secondary"]:hover {
-            background: rgba(108,99,255,0.15) !important;
-            border-color: #6C63FF !important;
-            color: #F0EEFF !important;
-            transform: none !important;
+        #planit-clear-btn:hover {
+            background: rgba(108,99,255,0.2);
+            border-color: #6C63FF;
+            color: #F0EEFF;
         }
         </style>
+        <button id="planit-clear-btn" onclick="
+            const url = new URL(window.location.href);
+            url.searchParams.set('clear', '1');
+            window.location.href = url.toString();
+        ">✕</button>
     """, unsafe_allow_html=True)
-    clear = st.button("✕", key="clear_btn", type="secondary")
-else:
-    clear = False
 
-# Handle clear button
-if clear:
-    st.session_state["_do_clear"] = True
+# Handle clear — triggered by ?clear=1 query param set by the HTML button above
+if st.query_params.get("clear") == "1":
+    st.query_params.clear()
+    st.session_state["_do_clear"]      = True
     st.session_state["plan_generated"] = False
-    st.session_state["plan_output"] = None
+    st.session_state["plan_output"]    = None
     st.rerun()
 
-# ── Plan generation ───────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. PLAN GENERATION
+#    Validates inputs, enforces a 10-second rate limit between requests,
+#    shows a themed progress bar, calls the AI, and stores the result in
+#    session state before triggering a rerun so the display block can render.
+# ─────────────────────────────────────────────────────────────────────────────
 if generate:
     if not goal or not deadline:
         st.warning("Please fill in your goal and time available before launching! 🚀")
     else:
+        # Rate limiting — prevent rapid repeated API calls
         time_since_last = time.time() - st.session_state.last_request_time
         if time_since_last < 10:
             st.warning(f"Please wait {int(10 - time_since_last)} seconds before generating again! ⏳")
@@ -408,59 +452,87 @@ if generate:
                 progress_bar.progress(val)
                 time.sleep(0.5)
 
+            # Call the AI planner
             from planner import generate_plan
             try:
                 plan = generate_plan(goal, deadline, level, extra_details)
             except Exception as e:
                 st.error("Something went wrong connecting to the AI. Please try again in a moment!")
                 st.stop()
+
+            # Store result and trigger rerun so the display block renders    
             st.session_state["plan_generated"] = True
             st.session_state["plan_output"] = plan
 
-        progress_bar.progress(100)
-        time.sleep(0.3)
-        progress_bar.empty()
-        progress_text.empty()
-        st.rerun()
+            progress_bar.progress(100)
+            time.sleep(0.3)
+            progress_bar.empty()
+            progress_text.empty()
+            st.rerun()
 
-# ── Display stored plan ───────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. PLAN DISPLAY
+#    Reads the stored plan from session state and parses it into three parts:
+#      - intro  : bold opening sentence(s) before the first day
+#      - days   : list of (title, content, is_bonus) tuples
+#      - outro  : italic closing sentence(s) after the last day
+#
+#    Parsing rules:
+#      - "Day N: Title" lines start a new day block
+#      - "--- Bonus Days ---" marks the start of optional bonus days
+#      - Trailing non-task lines at the end of the last day are moved to outro
+#      - "optional ... highly recommended" lines are filtered out everywhere
+#        (the planner sometimes appends this as a stray line)
+# ─────────────────────────────────────────────────────────────────────────────
+
 if st.session_state.get("plan_output"):
-    plan = st.session_state["plan_output"]
+    plan  = st.session_state["plan_output"]
     lines = plan.strip().split("\n")
-    intro_lines = []
-    days = []
-    outro_lines = []
-    current_day = None
+
+    intro_lines       = []
+    days              = []   # list of (title, content, is_bonus)
+    outro_lines       = []
+    current_day       = None
     current_day_content = []
-    found_days = False
-    in_bonus = False
- 
+    found_days        = False
+    in_bonus          = False
+
     for line in lines:
         stripped = line.strip()
+
+        # Detect the bonus days separator line
         is_bonus_marker = "bonus days" in stripped.lower() and "---" in stripped
+
+        # Detect a day header e.g. "Day 1: Introduction to Python"
         is_day_header = (
             stripped.lower().startswith("day ")
             and len(stripped) > 4
             and stripped[4:].split(":")[0].strip().isdigit()
         )
+
         if is_bonus_marker:
+            # Save the current day and switch to bonus mode
             if current_day:
                 days.append((current_day, "\n".join(current_day_content).strip(), False))
                 current_day = None
                 current_day_content = []
             in_bonus = True
+
         elif is_day_header:
+            # Save the previous day before starting a new one
             if current_day:
                 days.append((current_day, "\n".join(current_day_content).strip(), in_bonus))
             current_day = stripped
             current_day_content = []
             found_days = True
+
         elif found_days and current_day:
-            # Skip bonus note line if planner includes it inside day content
+            # Inside a day — skip stray "optional/highly recommended" lines
             if not ("optional" in stripped.lower() and "highly recommended" in stripped.lower()):
                 current_day_content.append(line)
+
         elif found_days and not current_day:
-            # Skip bonus note and marker lines from outro
+            # After the last day — collect outro, skipping stray lines
             skip = (
                 ("optional" in stripped.lower() and "highly recommended" in stripped.lower()) or
                 "--- bonus days" in stripped.lower() or
@@ -468,13 +540,15 @@ if st.session_state.get("plan_output"):
             )
             if stripped and not skip:
                 outro_lines.append(stripped)
+
         else:
+            # Before any day — collect intro
             if stripped:
                 intro_lines.append(stripped)
- 
-    # Save last day — but strip trailing non-bullet lines into outro
+
+    # Save the last day, stripping any trailing outro text that the planner
+    # may have appended inside the final day block
     if current_day:
-        # Walk back from end of content to find where tasks end and outro begins
         content_lines = current_day_content
         cutoff = len(content_lines)
         for j in range(len(content_lines) - 1, -1, -1):
@@ -483,12 +557,14 @@ if st.session_state.get("plan_output"):
                 break
             cutoff = j
         if cutoff < len(content_lines):
+            # Move the trailing text to the front of outro_lines
             outro_lines = [l.strip() for l in content_lines[cutoff:] if l.strip()] + outro_lines
             content_lines = content_lines[:cutoff]
         days.append((current_day, "\n".join(content_lines).strip(), in_bonus))
- 
+
     intro = " ".join(intro_lines)
-    # Filter bonus note from outro regardless of where planner placed it
+
+    # Final outro cleanup — filter stray bonus lines regardless of position
     outro_lines = [
         l for l in outro_lines
         if not ("optional" in l.lower() and "highly recommended" in l.lower())
@@ -496,13 +572,17 @@ if st.session_state.get("plan_output"):
         and not l.lower().startswith("--- bonus")
     ]
     outro = " ".join(outro_lines)
- 
+
+    # ── Render intro ──
     if intro:
         st.markdown(f'<div class="plan-intro">{intro}</div>', unsafe_allow_html=True)
- 
+
+    # ── Render day expanders ──
     bonus_banner_shown = False
     for i, (day_title, day_content, is_bonus) in enumerate(days):
+
         if is_bonus and not bonus_banner_shown:
+            # Show bonus section banner before the first bonus day
             st.markdown("""
                 <div style="
                     margin: 1.2rem 0 0.8rem;
@@ -512,7 +592,8 @@ if st.session_state.get("plan_output"):
                     border-radius: 10px;
                     text-align: center;
                 ">
-                    <span style="font-family:'Space Grotesk',sans-serif; font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#6C63FF;">
+                    <span style="font-family:'Space Grotesk',sans-serif; font-size:0.7rem;
+                                 font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#6C63FF;">
                         ✦ Bonus Days
                     </span>
                     <p style="margin:0.3rem 0 0; color:#8B87C0; font-size:0.8rem;">
@@ -521,11 +602,15 @@ if st.session_state.get("plan_output"):
                 </div>
             """, unsafe_allow_html=True)
             bonus_banner_shown = True
+
         elif i > 0:
+            # Thin divider between regular days
             st.markdown('<hr class="day-divider">', unsafe_allow_html=True)
- 
-        with st.expander(f"{"⭐" if is_bonus else "📅"} {day_title}", expanded=True):
+
+        icon = "⭐" if is_bonus else "📅"
+        with st.expander(f"{icon} {day_title}", expanded=True):
             st.markdown(day_content)
- 
+
+    # ── Render outro ──
     if outro:
         st.markdown(f'<div class="plan-outro">{outro}</div>', unsafe_allow_html=True)
