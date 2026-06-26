@@ -1,11 +1,50 @@
+"""
+planner.py — Planit 🪐
+======================
+Core planning engine for Planit, responsible for validating user inputs,
+building a structured AI prompt, sending requests to the Groq API,
+and returning a fully personalized day-by-day action plan.
+
+Responsibilities:
+    • Validate and sanitize user inputs before any API call is made
+    • Build a structured, multi-section prompt using the user's goal,
+      deadline, skill level, and optional additional details
+    • Apply planning rules including task ordering, daily time caps,
+      fitness rest day logic, small goal handling, and edge case fallbacks
+    • Generate personalized plans using LLaMA 3.3 70B via Groq API
+    • Return the generated plain text plan to app.py for display
+
+Prompt Structure:
+    • User Information
+    • Core Capabilities
+    • Behavior and Style
+    • Workflow for Plan Generation
+    • Daily Time Cap
+    • Small Goal / Long Deadline Handling
+    • Fitness & Workout Goal Handling
+    • Intro and Outro Rules
+    • Output Format
+    • Error Handling
+    • Key Rules (16 enforced rules)
+
+Model:
+    Provider : Groq
+    Model    : llama-3.3-70b-versatile
+    Temp     : 0.7
+    Max Tokens: 2048 
+
+Dependencies:
+    pip install groq python-dotenv
+"""
+
 from groq import Groq
 import os
 from dotenv import load_dotenv
- 
+
+# ── Load API key from .env file ───────────────────────────────────────
 load_dotenv()
- 
 api_key = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=api_key)
+client = Groq(api_key=api_key)      # Initialize Groq client
  
 # ── Input validation in Python before the AI is ever called ──────────
 def validate_inputs(goal, deadline, level):
@@ -21,7 +60,7 @@ def validate_inputs(goal, deadline, level):
         return "Oops! Missing some details — please complete your Goal, Deadline, and Level fields to generate your plan."
     return None
 
-
+# ── Plan Generation ───────────────────────────────────────────────────
 def generate_plan(goal, deadline, level, extra_details=""):
     
     # Run validation first — if it fails, return the error and skip the API call
@@ -95,8 +134,7 @@ def generate_plan(goal, deadline, level, extra_details=""):
     - If no duration is provided, default to 30 minutes per session
     - Include warm up and cool down as part of the time estimate
     - Rest day rules:
-        * Beginner: include a rest or recovery day every 2 days
-        * Intermediate: include a rest or recovery day every 3 days
+        * Beginner and Intermediate: include a rest or recovery day every 3 days
         * Expert: include a rest or recovery day every 4 days
         * For short plans (3 days or less), skip rest days entirely
         * Recovery days are NOT empty — always assign one of these:
@@ -113,15 +151,7 @@ def generate_plan(goal, deadline, level, extra_details=""):
         * Concept introduction days → video tutorial or article
         * Practice days → interactive tool or exercise site
         * Review days → quiz, flashcard tool, or summary article
-    - ONLY use well-known, reliable homepage-level URLs. Examples of acceptable URLs:
-        * https://www.youtube.com
-        * https://www.w3schools.com
-        * https://www.khanacademy.org
-        * https://www.duolingo.com
-        * https://www.coursera.org
-        * https://developer.mozilla.org
-        * https://www.reddit.com
-        * https://www.google.com
+    - ONLY use well-known, reliable homepage-level URLs. 
     - NEVER generate a specific video URL, playlist link, or deep page URL — they will break
     - If no specific tool exists for a topic, tell the user to search for it:
       "Search '[topic] tutorial for beginners' on YouTube"
@@ -132,22 +162,13 @@ def generate_plan(goal, deadline, level, extra_details=""):
     - Directly reference the user's goal: {goal}, deadline: {deadline}, and level: {level}
     - Feel personal — mention what kind of plan this is and what to expect
     - Be action-oriented and energetic
-    - Use a DIFFERENT sentence structure and opening word every time
     - NEVER start with "Here's your plan"
     - NEVER use the 💪 emoji
-    - NEVER be generic — the user must feel this intro was written for them specifically
  
     Good examples:
     - "Two weeks, zero experience, one goal — this plan takes you from complete beginner to confidently writing Python code step by step! 🐍"
-    - "Your 30-day fitness journey as a beginner starts right here — expect short, manageable sessions that build real strength over time! 🔥"
-    - "Korean cooking in 1 week? Let's do it — this beginner-friendly plan walks you through essential techniques one dish at a time! 🍜"
     - "As a beginner with 2 weeks available, this plan focuses on building a safe yoga foundation through short daily sessions and gradual progression. 🧘"
     
-    Bad examples (NEVER do these):
-    - "Here's your personalized plan!" (too generic, no details)
-    - "Get ready to bend, breathe, and blossom!" (poetic but not personal)
-    - "Let's get started on your goal!" (says nothing specific)
- 
     ## Assumptions — only if needed
     If the goal is broad or unclear, state assumptions in one friendly casual sentence.
     Example: "I'm taking 'Python basics' to mean the core fundamentals — variables, loops, functions and data structures."
@@ -168,9 +189,9 @@ def generate_plan(goal, deadline, level, extra_details=""):
     - NEVER use the 💪 emoji
  
     Good outro examples:
-    - "By the end of these 2 weeks you'll be able to write basic Python scripts, work with loops and functions, and build a small project from scratch. Some concepts like functions might feel tricky at first — just slow down and re-read on those days. Now go make it happen!"
-    - "After 30 days of this plan you'll have built real workout consistency and noticeably improved your strength and endurance as a beginner. There will be tough days — just show up and do what you can. The only thing left to do is start!"
-    
+    - "By the end of these 2 weeks you'll be able to write basic Python scripts, work with loops and functions, and build a small project from scratch. 
+       Some concepts like functions might feel tricky at first — just slow down and re-read on those days. Now go make it happen!"
+
     ## Output Format
     Your response must follow this EXACT structure — no labels, no section headers, no brackets:
  
@@ -218,23 +239,25 @@ def generate_plan(goal, deadline, level, extra_details=""):
         what was introduced in Tasks 1 and 2 on that same day
     5. NEVER imply the user has finished the plan in the outro
     6. NEVER say "adjust as needed" — Planit is not a chatbot
-    7. NEVER use the 💪 emoji — all other emojis are allowed
     8. NEVER generate deep or specific URLs — homepage-level only
     9. NEVER write section labels like [Intro], [Outro], or [Day by Day Plan]
     10. NEVER add rest days to non-fitness goals (e.g. learning, creative work)
     11. ALWAYS include a resource for every single day
     12. ALWAYS end with a wrap-up or review day
-    13. ALWAYS write an intro that references the user's specific goal, level, and deadline
-    14. ALWAYS write an outro that mentions what the user will concretely achieve
+    13. ALWAYS write a personalised intro
+    14. ALWAYS write a personalised outro that mentions what the user will concretely achieve
     15. ALWAYS follow task order: introduce → explain → practice
     16. ALWAYS state assumptions casually if the goal is broad or unclear
     17. For small goals with long deadlines, ALWAYS add the optional bonus note
+    18. ALWAYS complete the full plan up to the final day — never stop mid-plan. The outro MUST always 
+        be included after the last day, no exceptions.
     """
-
+    # ── Send prompt to Groq API and return the response ───────────────
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
-        max_tokens=2048
+        temperature=0.7,    # Balanced creativity and consistency
+        max_tokens=2048      
     )
+    # ── Return the plain text plan to app.py ──────────────────────────
     return response.choices[0].message.content
