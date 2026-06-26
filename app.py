@@ -286,7 +286,35 @@ div[data-testid="stAlert"] {
     border-radius: 10px !important;
     color: #C4BFFF !important;
 }
-
+            
+/* ── Clear button — fixed top-right corner ── */
+div[data-testid="stMainBlockContainer"] > div > div > div > div:has(button[data-testid="baseButton-secondary"]) {
+    position: fixed;
+    top: 0.75rem;
+    right: 1rem;
+    z-index: 99999;
+    width: auto;
+}
+button[data-testid="baseButton-secondary"] {
+    background: transparent !important;
+    border: 1px solid rgba(139,135,192,0.4) !important;
+    border-radius: 50% !important;
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    color: #8B87C0 !important;
+    font-size: 0.9rem !important;
+    min-height: unset !important;
+    box-shadow: none !important;
+    line-height: 1 !important;
+}
+button[data-testid="baseButton-secondary"]:hover {
+    background: rgba(108,99,255,0.2) !important;
+    border-color: #6C63FF !important;
+    color: #F0EEFF !important;
+    transform: none !important;
+}
+ 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -377,48 +405,15 @@ _, btn_center, _ = st.columns([1, 2, 1])
 with btn_center:
     generate = st.button("✨ Generate My Plan", use_container_width=True)
 
-# Clear button — fixed top-right, only visible after a plan is generated
+# Clear button — rendered as a Streamlit secondary button
+# Only shown after a plan has been generated.
 if st.session_state.plan_generated:
-    st.markdown("""
-        <style>
-        #planit-clear-btn {
-            position: fixed;
-            top: 0.85rem;
-            right: 1.1rem;
-            z-index: 99999;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            border: 1px solid rgba(139,135,192,0.4);
-            background: transparent;
-            color: #8B87C0;
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-        #planit-clear-btn:hover {
-            background: rgba(108,99,255,0.2);
-            border-color: #6C63FF;
-            color: #F0EEFF;
-        }
-        </style>
-        <button id="planit-clear-btn" onclick="
-            const url = new URL(window.location.href);
-            url.searchParams.set('clear', '1');
-            window.location.href = url.toString();
-        ">✕</button>
-    """, unsafe_allow_html=True)
-
-# Handle clear — triggered by ?clear=1 query param set by the HTML button above
-if st.query_params.get("clear") == "1":
-    st.query_params.clear()
-    st.session_state["_do_clear"]      = True
-    st.session_state["plan_generated"] = False
-    st.session_state["plan_output"]    = None
-    st.rerun()
+    clear = st.button("✕", type="secondary", key="clear_btn")
+    if clear:
+        st.session_state["_do_clear"]      = True
+        st.session_state["plan_generated"] = False
+        st.session_state["plan_output"]    = None
+        st.rerun()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 7. PLAN GENERATION
