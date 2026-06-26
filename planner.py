@@ -213,7 +213,9 @@ def generate_plan(goal, deadline, level, extra_details=""):
     1. NEVER exceed the time given: {deadline}
     2. NEVER make individual tasks longer than 2 hours
     3. NEVER exceed the user's daily time cap — add up minutes per day before writing
-    4. NEVER put practice tasks before introduction or explanation tasks
+    4. NEVER introduce a brand new concept as Task 3 — 
+        Task 3 must always be practice or application of 
+        what was introduced in Tasks 1 and 2 on that same day
     5. NEVER imply the user has finished the plan in the outro
     6. NEVER say "adjust as needed" — Planit is not a chatbot
     7. NEVER use the 💪 emoji — all other emojis are allowed
@@ -231,6 +233,8 @@ def generate_plan(goal, deadline, level, extra_details=""):
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+        max_tokens=2048
     )
     return response.choices[0].message.content
