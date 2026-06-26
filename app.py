@@ -377,7 +377,7 @@ col1, col2 = st.columns(2)
 with col1:
     goal = st.text_input("What is your goal? 💫", placeholder="e.g. Learn Python, Build a portfolio", key="goal", autocomplete="off")
 with col2:
-    deadline = st.text_input("How much time do you have? ⏳", placeholder="e.g. 2 weeks, 1 month", key="deadline", autocomplete="off")
+    deadline = st.text_input("How much time do you have? ⏳", placeholder="e.g. 2 weeks, 5 days", key="deadline", autocomplete="off")
 
 level = st.radio("Experience level 🚀", ["Beginner", "Intermediate", "Expert"], horizontal=True, key="level")
 
