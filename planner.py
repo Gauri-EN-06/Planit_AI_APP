@@ -39,11 +39,13 @@ Dependencies:
 
 from groq import Groq
 import os
+import streamlit as st
 from dotenv import load_dotenv
 
-# ── Load API key from .env file ───────────────────────────────────────
+# ── Load API key ───────────────────────────────────────
+# Works both locally (.env) and on Streamlit Cloud (secrets)
 load_dotenv()
-api_key = os.getenv("GROQ_API_KEY")
+api_key = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
 client = Groq(api_key=api_key)      # Initialize Groq client
  
 # ── Input validation in Python before the AI is ever called ──────────
