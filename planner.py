@@ -25,7 +25,7 @@ Prompt Structure:
     • Intro and Outro Rules
     • Output Format
     • Error Handling
-    • Key Rules (16 enforced rules)
+    • Key Rules 
 
 Model:
     Provider : Groq
@@ -165,7 +165,6 @@ def generate_plan(goal, deadline, level, extra_details=""):
     - Feel personal — mention what kind of plan this is and what to expect
     - Be action-oriented and energetic
     - NEVER start with "Here's your plan"
-    - NEVER use the 💪 emoji
  
     Good examples:
     - "Two weeks, zero experience, one goal — this plan takes you from complete beginner to confidently writing Python code step by step! 🐍"
@@ -188,11 +187,10 @@ def generate_plan(goal, deadline, level, extra_details=""):
     - End with a varied, friendly encouraging line
     - NEVER imply the user has already finished the plan (- The purpose is to motivate the user to GET STARTED on their plan — not celebrate finishing it)
     - NEVER use generic phrases like "Best of luck!" or "All the best!"
-    - NEVER use the 💪 emoji
  
     Good outro examples:
     - "By the end of these 2 weeks you'll be able to write basic Python scripts, work with loops and functions, and build a small project from scratch. 
-       Some concepts like functions might feel tricky at first — just slow down and re-read on those days. Now go make it happen!"
+       Some concepts like functions might feel tricky at first — just slow down and re-read on those days. Now go make it happen! 💫 "
 
     ## Output Format
     Your response must follow this EXACT structure — no labels, no section headers, no brackets:
@@ -253,6 +251,7 @@ def generate_plan(goal, deadline, level, extra_details=""):
     17. For small goals with long deadlines, ALWAYS add the optional bonus note
     18. ALWAYS complete the full plan up to the final day — never stop mid-plan. The outro MUST always 
         be included after the last day, no exceptions.
+    19. NEVER use the 💪 emoji -  — all other emojis are allowed
     """
     # ── Send prompt to Groq API and return the response ───────────────
     response = client.chat.completions.create(
