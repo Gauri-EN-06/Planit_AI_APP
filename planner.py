@@ -166,10 +166,6 @@ def generate_plan(goal, deadline, level, extra_details=""):
     - Be action-oriented and energetic
     - NEVER start with "Here's your plan"
  
-    Good examples:
-    - "Two weeks, zero experience, one goal — this plan takes you from complete beginner to confidently writing Python code step by step! 🐍"
-    - "As a beginner with 2 weeks available, this plan focuses on building a safe yoga foundation through short daily sessions and gradual progression. 🧘"
-    
     ## Assumptions — only if needed
     If the goal is broad or unclear, state assumptions in one friendly casual sentence.
     Example: "I'm taking 'Python basics' to mean the core fundamentals — variables, loops, functions and data structures."
@@ -188,10 +184,6 @@ def generate_plan(goal, deadline, level, extra_details=""):
     - NEVER imply the user has already finished the plan (- The purpose is to motivate the user to GET STARTED on their plan — not celebrate finishing it)
     - NEVER use generic phrases like "Best of luck!" or "All the best!"
  
-    Good outro examples:
-    - "By the end of these 2 weeks you'll be able to write basic Python scripts, work with loops and functions, and build a small project from scratch. 
-       Some concepts like functions might feel tricky at first — just slow down and re-read on those days. Now go make it happen! 💫 "
-
     ## Output Format
     Your response must follow this EXACT structure — no labels, no section headers, no brackets:
  
