@@ -21,6 +21,15 @@ Planit takes your goal, deadline, and experience level and generates a personali
 - Streamlit
 - Groq API (LLaMA 3.3 70B)
 
+## ⚠️ API & Rate Limit Notes
+Planit uses the **Groq API (free tier)** with the LLaMA 3.3 70B model to generate plans.
+- Get a free API key at [console.groq.com](https://console.groq.com)
+
+**Please note:**
+- The free tier has a rate limit of **30 requests per minute**
+- If you see a "Resource Exhausted" error, wait 1-2 minutes and try again
+- A 10 second cooldown is built into the app to help manage this
+
 ## ⭐ Built by
 Gauri E.N.
 
